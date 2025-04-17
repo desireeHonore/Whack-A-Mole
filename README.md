@@ -1,0 +1,1 @@
+Test your reflexes in this classic arcade game! Moles pop up randomly from their holes – click or tap them quickly to earn points. See how high you can score before time runs out! Built with JavaScript, HTML, and CSS.
