@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Whack-A-Mole</title>
+        <style>
+            .board { 
+                border-collapse:collapse;
+                border:1px solid pink;
+                margin-bottom:8px;
+
+            }
+            .board td, .board th {
+                background-color:#FFC0CB;
+                border:1px solid #FFC0CB;
+            }
+            .board img {
+                width:80px;
+                vertical-align:middle;
+                cursor: url("images/mallet_up.png"),default;
+            }
+            body {
+                text-align:center;
+            }
+        </style>
+    </head>
+    <body>
+        <audio id="whack" src="sounds/whack.mp3"></audio>
+        <table align="center" class="board">
+            <tr>
+                <th colspan="4">Whack-A-Mole</th>
+                <!--colspan is 4 because the amount of columns for the game--> 
+            </tr>
+            <tr>
+                <th colspan="2">Time: <span id="timeLeft">30</span></th>
+                <th colspan="2">Score: <span id="score">0</span></th>
+                <!--span id is added to access and change in JavaScript-->
+            </tr>
+            <tr>
+                <td><img></td>
+                <td><img></td>
+                <td><img></td>
+                <td><img></td>
+            </tr>
+            <tr>
+                <td><img></td>
+                <td><img></td>
+                <td><img></td>
+                <td><img></td>
+            </tr>
+            <tr>
+                <td><img></td>
+                <td><img></td>
+                <td><img></td>
+                <td><img></td>
+            </tr>
+            
+        </table>
+        <button id="start" onclick="start()">Start</button>
+        <script>
+            var timeLeft=30;
+            var score=0;
+            var intervalTimerId=0;
+            var gameOn=false;
+            var holes=document.getElementsByTagName("img");
+            for(var i=0;i<holes.length;i++)
+            {
+                holes[i].src="images/mole_down.png";
+                holes[i].onmousedown=function(e){
+                    this.style.cursor='url("images/mallet_down.png"),default';
+                    var whack=document.getElementById("whack");
+                    whack.pause();
+                    whack.currentTime=0;
+                    whack.play();
+                    if(this.src.endsWith("mole_up.png"))
+                    {
+                        score++;
+                        document.getElementById("score").innerHTML=score;
+                        this.src="images/mole_hit.png";
+                    }
+                    //'this' refers to whatever object the "onmousedown" function is attached to
+                    forceRerender();
+                };
+                holes[i].onmouseup=function(e){
+                    this.style.cursor='url("images/mallet_up.png"),default';
+                    forceRerender();
+                };
+            }
+            
+            function forceRerender()
+            {
+                var s=document.createElement("span");    
+                s.id="animationTrigger"; 
+                document.body.append(s);
+                window.requestAnimationFrame(function(){
+                    document.getElementById("animationTrigger").remove();
+                });
+                //append=adding an element to the end of your body
+            }
+            
+            function getRandomNumber(min,max)
+            {
+                return Math.floor( Math.random() *(max-min) + min );
+                //math.floor = round down function (rounds down nearest integer)
+            }
+            
+            function moleDown(img)
+            {
+                img.src="images/mole_down.png";
+            }
+            
+            function moleUp(img)
+            {
+                img.src="images/mole_up.png";
+            }
+             
+            function moleHit(img)
+            {
+                img.src="images/mole_hit.png";
+            }
+            
+            function showRandomMole()
+            {
+                if(!gameOn)
+                {
+                    return;
+                }
+                var moleIndex=getRandomNumber(0,holes.length);
+                var upTime=getRandomNumber(500,1500);
+                moleUp(holes[moleIndex]);
+                setTimeout(function(){
+                    moleDown(holes[moleIndex]);  
+                },upTime);
+                var waitTime=getRandomNumber(400,1000);
+                setTimeout(showRandomMole,waitTime);
+            }
+            
+            function countdown()
+            {
+                timeLeft--;
+                document.getElementById("timeLeft").innerHTML=timeLeft;
+                if(timeLeft==0)
+                {
+                    clearInterval(intervalTimerId);
+                    document.getElementById("start").disabled=false;
+                    gameOn=false;
+                }
+            }
+            
+            function start()
+            {
+                timeLeft=30;
+                document.getElementById("timeLeft").innerHTML=timeLeft;
+                score=0;
+                document.getElementById("score").innerHTML=score;
+                gameOn=true;
+                document.getElementById("start").disabled=true;
+                intervalTimerId=setInterval(countdown,1000);
+                showRandomMole();
+                
+            }
+            
+            
+        </script>
+    </body>
+</html>
