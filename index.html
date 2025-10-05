@@ -1,3 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack-A-Mole Deluxe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial Black', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            animation: backgroundMove 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundMove {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-50px, -50px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 800px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 4em;
+            color: #fff;
+            text-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 20px 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #fff;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .board {
+            background: linear-gradient(135deg, #2d5016 0%, #1a3d0a 100%);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .board::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .hole {
+            position: relative;
+            aspect-ratio: 1;
+            background: radial-gradient(circle at center, #3d2817 0%, #1a0f08 100%);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 10px 30px rgba(0,0,0,0.8),
+                0 5px 15px rgba(0,0,0,0.3);
+            overflow: hidden;
+            cursor: crosshair;
+            transition: transform 0.1s;
+        }
+
+        .hole:active {
+            transform: scale(0.95);
+        }
+
+        .mole {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle at 30% 30%, #8B4513 0%, #654321 100%);
+            border-radius: 50% 50% 40% 40%;
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
+
+        .mole::before {
+            content: '';
+            position: absolute;
+            top: 30%;
+            left: 25%;
+            width: 20%;
+            height: 15%;
+            background: #000;
+            border-radius: 50%;
+            box-shadow: 30px 0 0 #000;
+        }
+
+        .mole::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30%;
+            height: 20%;
+            background: #000;
+            border-radius: 50%;
+        }
+
+        .mole.up {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .mole.hit {
+            animation: hitAnimation 0.3s;
+        }
+
+        @keyframes hitAnimation {
+            0%, 100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+            25% { transform: translateX(-50%) translateY(0) rotate(-15deg); }
+            75% { transform: translateX(-50%) translateY(0) rotate(15deg); }
+        }
+
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleExplosion 0.6s ease-out forwards;
+        }
+
+        @keyframes particleExplosion {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        .score-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffd700;
+            font-size: 2em;
+            font-weight: bold;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            animation: scorePopup 0.8s ease-out forwards;
+        }
+
+        @keyframes scorePopup {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -70%) scale(1.2);
+            }
+            100% {
+                transform: translate(-50%, -100%) scale(1);
+                opacity: 0;
+            }
+        }
+
+        #start {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #start:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(245, 87, 108, 0.6);
+        }
+
+        #start:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        #start:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .combo {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #f5576c, #ffd700);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.5);
+            animation: comboBounce 0.5s ease-in-out infinite;
+        }
+
+        @keyframes comboBounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔨 WHACK-A-MOLE 🔨</h1>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">TIME</div>
+                <div class="stat-value" id="timeLeft">30</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">SCORE</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+        </div>
+
+        <div class="board" id="board">
+            <!-- 12 holes (4x3 grid) -->
+        </div>
+
+        <button id="start" onclick="start()">START GAME</button>
+    </div>
+
+    <script>
+        let timeLeft = 30;
+        let score = 0;
+        let intervalTimerId = 0;
+        let gameOn = false;
+        let holes = [];
+        let combo = 0;
+        let comboTimeout = null;
+
+        // Create 12 holes
+        const board = document.getElementById('board');
+        for (let i = 0; i < 12; i++) {
+            const hole = document.createElement('div');
+            hole.className = 'hole';
+            hole.innerHTML = '<div class="mole"></div>';
+            board.appendChild(hole);
+            holes.push(hole);
+
+            hole.addEventListener('click', function() {
+                const mole = this.querySelector('.mole');
+                if (mole.classList.contains('up') && gameOn) {
+                    score++;
+                    combo++;
+                    document.getElementById('score').innerHTML = score;
+                    
+                    mole.classList.remove('up');
+                    mole.classList.add('hit');
+                    
+                    createParticles(this);
+                    showScorePopup(this);
+                    
+                    if (combo >= 3) {
+                        showCombo();
+                    }
+                    
+                    clearTimeout(comboTimeout);
+                    comboTimeout = setTimeout(() => {
+                        combo = 0;
+                        hideCombo();
+                    }, 1500);
+                    
+                    setTimeout(() => {
+                        mole.classList.remove('hit');
+                    }, 300);
+                }
+            });
+        }
+
+        function createParticles(hole) {
+            const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f093fb'];
+            const rect = hole.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 12; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.left = centerX + 'px';
+                particle.style.top = centerY + 'px';
+                
+                const angle = (Math.PI * 2 * i) / 12;
+                const distance = 50 + Math.random() * 50;
+                particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+                
+                document.body.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 600);
+            }
+        }
+
+        function showScorePopup(hole) {
+            const popup = document.createElement('div');
+            popup.className = 'score-popup';
+            popup.textContent = '+1';
+            hole.appendChild(popup);
+            setTimeout(() => popup.remove(), 800);
+        }
+
+        function showCombo() {
+            let comboEl = document.querySelector('.combo');
+            if (!comboEl) {
+                comboEl = document.createElement('div');
+                comboEl.className = 'combo';
+                board.appendChild(comboEl);
+            }
+            comboEl.textContent = `🔥 COMBO x${combo} 🔥`;
+        }
+
+        function hideCombo() {
+            const comboEl = document.querySelector('.combo');
+            if (comboEl) {
+                comboEl.remove();
+            }
+        }
+
+        function getRandomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min) + min);
+        }
+
+        function showRandomMole() {
+            if (!gameOn) return;
+            
+            const moleIndex = getRandomNumber(0, holes.length);
+            const mole = holes[moleIndex].querySelector('.mole');
+            const upTime = getRandomNumber(600, 1400);
+            
+            if (!mole.classList.contains('up')) {
+                mole.classList.add('up');
+                
+                setTimeout(() => {
+                    mole.classList.remove('up');
+                }, upTime);
+            }
+            
+            const waitTime = getRandomNumber(300, 800);
+            setTimeout(showRandomMole, waitTime);
+        }
+
+        function countdown() {
+            timeLeft--;
+            document.getElementById('timeLeft').innerHTML = timeLeft;
+            if (timeLeft === 0) {
+                clearInterval(intervalTimerId);
+                document.getElementById('start').disabled = false;
+                document.getElementById('start').textContent = 'PLAY AGAIN';
+                gameOn = false;
+                hideCombo();
+            }
+        }
+
+        function start() {
+            timeLeft = 30;
+            document.getElementById('timeLeft').innerHTML = timeLeft;
+            score = 0;
+            combo = 0;
+            document.getElementById('score').innerHTML = score;
+            gameOn = true;
+            document.getElementById('start').disabled = true;
+            intervalTimerId = setInterval(countdown, 1000);
+            showRandomMole();
+        }
+    </script>
+</body>
+</html>
+
+
+<!--
 <!doctype html>
 <html>
     <head>
@@ -28,12 +490,12 @@
         <table align="center" class="board">
             <tr>
                 <th colspan="4">Whack-A-Mole</th>
-                <!--colspan is 4 because the amount of columns for the game--> 
+                <!--colspan is 4 because the amount of columns for the game
             </tr>
             <tr>
                 <th colspan="2">Time: <span id="timeLeft">30</span></th>
                 <th colspan="2">Score: <span id="score">0</span></th>
-                <!--span id is added to access and change in JavaScript-->
+                <!--span id is added to access and change in JavaScript
             </tr>
             <tr>
                 <td><img></td>
@@ -163,3 +625,5 @@
         </script>
     </body>
 </html>
+
+--->
