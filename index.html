@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Whack-A-Mole Deluxe</title>
+    <title>Whack-A-Mole</title>
     <style>
         * {
             margin: 0;
@@ -212,15 +212,15 @@
 <body>
     <audio id="whack" src="whack.mp3"></audio>
     
-    <h1>🔨 WHACK-A-MOLE 🔨</h1>
+    <h1>WHACK-A-MOLE</h1>
     
     <table align="center" class="board">
         <tr>
-            <th colspan="4">WHACK-A-MOLE DELUXE</th>
+            <th colspan="4">WHACK-A-MOLE</th>
         </tr>
         <tr class="stat-row">
-            <th colspan="2">⏰ Time: <span id="timeLeft">30</span></th>
-            <th colspan="2">⭐ Score: <span id="score">0</span></th>
+            <th colspan="2">Time: <span id="timeLeft">30</span></th>
+            <th colspan="2">Score: <span id="score">0</span></th>
         </tr>
         <tr>
             <td><img></td>
@@ -242,7 +242,7 @@
         </tr>
     </table>
     
-    <button id="start" onclick="start()">🎮 START GAME 🎮</button>
+    <button id="start" onclick="start()">START GAME</button>
     
     <script>
         var timeLeft = 30;
@@ -358,7 +358,7 @@
             if (timeLeft == 0) {
                 clearInterval(intervalTimerId);
                 document.getElementById("start").disabled = false;
-                document.getElementById("start").innerHTML = "🎮 PLAY AGAIN 🎮";
+                document.getElementById("start").innerHTML = "PLAY AGAIN";
                 gameOn = false;
             }
         }
@@ -370,7 +370,7 @@
             document.getElementById("score").innerHTML = score;
             gameOn = true;
             document.getElementById("start").disabled = true;
-            document.getElementById("start").innerHTML = "🎮 GAME ACTIVE 🎮";
+            document.getElementById("start").innerHTML = "GAME ACTIVE";
             intervalTimerId = setInterval(countdown, 1000);
             showRandomMole();
         }
